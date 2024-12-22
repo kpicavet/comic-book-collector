@@ -13,6 +13,7 @@ export interface ComicBook {
   storage_url?: string;
   state: ComicState | null;
   owned: boolean;
+  favorite: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -16,6 +16,7 @@ import { ComicCardComponent } from "../card/comic-card.component";
         [comic]="comic"
         (stateChange)="stateChange.emit($event)"
         (ownedChange)="ownedChange.emit($event)"
+        (favoriteChange)="favoriteChange.emit($event)"
       ></app-comic-card>
     </div>
   `,
@@ -27,4 +28,8 @@ export class ComicGridComponent {
     state: ComicState | null;
   }>();
   @Output() ownedChange = new EventEmitter<{ id: string; owned: boolean }>();
+  @Output() favoriteChange = new EventEmitter<{
+    id: string;
+    favorite: boolean;
+  }>();
 }

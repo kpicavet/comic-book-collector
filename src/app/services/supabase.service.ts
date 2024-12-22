@@ -5,7 +5,6 @@ import { environment } from "../../environments/environment";
 import { AuthService } from "./auth.service";
 import { StorageService } from "./storage.service";
 import { ComicBook, ComicState } from "../models/comic-book.model";
-import { withRetry } from "./database.utils";
 
 @Injectable({
   providedIn: "root",
@@ -53,54 +52,6 @@ export class SupabaseService {
     this.comicBooks.next(data);
   }
 
-  async updateComicState(id: string, state: ComicState | null) {
-    if (!this.authService.currentUser) return;
-
-    // Optimistic update
-    this.updateLocalComic(id, { state, updated_at: new Date().toISOString() });
-
-    const { error } = await this.supabase
-      .from("comic_books")
-      .update({
-        state,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Error updating comic state:", error);
-      await this.loadComicBooks(); // Revert on error
-      return;
-    }
-  }
-
-  async updateComicOwned(id: string, owned: boolean) {
-    if (!this.authService.currentUser) return;
-
-    // Optimistic update
-    const state = owned ? ComicState.new : null;
-    this.updateLocalComic(id, {
-      owned,
-      state,
-      updated_at: new Date().toISOString(),
-    });
-
-    const { error } = await this.supabase
-      .from("comic_books")
-      .update({
-        owned,
-        state,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Error updating comic owned status:", error);
-      await this.loadComicBooks(); // Revert on error
-      return;
-    }
-  }
-
   async addComicBook(
     comic: Omit<ComicBook, "id" | "created_at" | "updated_at">,
     coverImage?: File
@@ -121,6 +72,7 @@ export class SupabaseService {
         {
           ...comic,
           storage_url: storageUrl,
+          favorite: false, // Set default value
         },
       ]);
 
@@ -129,7 +81,6 @@ export class SupabaseService {
       await this.loadComicBooks();
     } catch (error) {
       console.error("Error adding comic book:", error);
-      // If we uploaded an image but failed to create the record, clean up
       if (storageUrl) {
         await this.storageService
           .deleteCover(comic.number)
@@ -139,17 +90,88 @@ export class SupabaseService {
     }
   }
 
+  async updateComicState(id: string, state: ComicState | null) {
+    if (!this.authService.currentUser) return;
+
+    this.updateLocalComic(id, { state, updated_at: new Date().toISOString() });
+
+    const { error } = await this.supabase
+      .from("comic_books")
+      .update({
+        state,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error updating comic state:", error);
+      await this.loadComicBooks();
+      return;
+    }
+  }
+
+  async updateComicOwned(id: string, owned: boolean) {
+    if (!this.authService.currentUser) return;
+
+    const state = owned ? ComicState.new : null;
+    const favorite = owned ? false : undefined; // Reset favorite only when marking as owned
+
+    this.updateLocalComic(id, {
+      owned,
+      state,
+      favorite,
+      updated_at: new Date().toISOString(),
+    });
+
+    const { error } = await this.supabase
+      .from("comic_books")
+      .update({
+        owned,
+        state,
+        favorite,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error updating comic owned status:", error);
+      await this.loadComicBooks();
+      return;
+    }
+  }
+
+  async updateComicFavorite(id: string, favorite: boolean) {
+    if (!this.authService.currentUser) return;
+
+    this.updateLocalComic(id, {
+      favorite,
+      updated_at: new Date().toISOString(),
+    });
+
+    const { error } = await this.supabase
+      .from("comic_books")
+      .update({
+        favorite,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error updating comic favorite status:", error);
+      await this.loadComicBooks();
+      return;
+    }
+  }
+
   async updateComicCover(comicNumber: number, file: File) {
     if (!this.authService.currentUser) return;
 
     try {
-      // Upload to storage bucket and get URL
       const storageUrl = await this.storageService.uploadCover(
         file,
         comicNumber
       );
 
-      // Update database with new URL
       const { error } = await this.supabase
         .from("comic_books")
         .update({

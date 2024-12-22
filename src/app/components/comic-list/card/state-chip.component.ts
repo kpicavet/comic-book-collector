@@ -10,6 +10,7 @@ import { ComicState } from "../../../models/comic-book.model";
     <div class="flex flex-col gap-2">
       <!-- Ownership toggle -->
       <button
+        id="ownedbutton"
         (click)="toggleOwned()"
         class="group relative w-full py-1.5 px-3 rounded-lg transition-all duration-200"
         [class.bg-emerald-500]="owned"

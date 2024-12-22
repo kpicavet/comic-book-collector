@@ -4,7 +4,7 @@ import { SupabaseService } from "../../services/supabase.service";
 import { ComicBook, ComicState } from "../../models/comic-book.model";
 import { ComicGridComponent } from "./grid/comic-grid.component";
 import { ComicFormComponent } from "./form/comic-form.component";
-import { ComicFiltersComponent } from "./filters/comic-filters.component";
+import { FilterSectionComponent } from "./filters/filter-section.component";
 import { ImageUploadComponent } from "./image-upload/image-upload.component";
 import { UploadModalService } from "../../services/upload-modal.service";
 
@@ -15,21 +15,23 @@ import { UploadModalService } from "../../services/upload-modal.service";
     CommonModule,
     ComicGridComponent,
     ComicFormComponent,
-    ComicFiltersComponent,
+    FilterSectionComponent,
     ImageUploadComponent,
   ],
   template: `
     <div class="container mx-auto px-4">
-      <app-comic-filters
+      <app-filter-section
         [searchValue]="searchTerm"
         [selectedState]="selectedState"
         [selectedOwned]="selectedOwned"
+        [selectedFavorite]="selectedFavorite"
         (searchChange)="searchTerm = $event"
         (stateChange)="selectedState = $event"
         (ownedChange)="selectedOwned = $event"
+        (favoriteChange)="selectedFavorite = $event"
         (addClick)="showAddForm = true"
         (uploadClick)="uploadModalService.openModal()"
-      ></app-comic-filters>
+      ></app-filter-section>
 
       <app-comic-form
         *ngIf="showAddForm"
@@ -46,6 +48,7 @@ import { UploadModalService } from "../../services/upload-modal.service";
         [comics]="filteredComics"
         (stateChange)="updateState($event)"
         (ownedChange)="updateOwned($event)"
+        (favoriteChange)="updateFavorite($event)"
       ></app-comic-grid>
     </div>
   `,
@@ -55,6 +58,7 @@ export class ComicListComponent implements OnInit {
   searchTerm = "";
   selectedState = "";
   selectedOwned = "";
+  selectedFavorite = "";
   showAddForm = false;
 
   constructor(
@@ -78,7 +82,10 @@ export class ComicListComponent implements OnInit {
         !this.selectedState || comic.state === this.selectedState;
       const matchesOwned =
         !this.selectedOwned || comic.owned === (this.selectedOwned === "true");
-      return matchesSearch && matchesState && matchesOwned;
+      const matchesFavorite =
+        !this.selectedFavorite ||
+        (this.selectedFavorite === "true" ? comic.favorite : !comic.favorite);
+      return matchesSearch && matchesState && matchesOwned && matchesFavorite;
     });
   }
 
@@ -88,6 +95,10 @@ export class ComicListComponent implements OnInit {
 
   async updateOwned({ id, owned }: { id: string; owned: boolean }) {
     await this.supabaseService.updateComicOwned(id, owned);
+  }
+
+  async updateFavorite({ id, favorite }: { id: string; favorite: boolean }) {
+    await this.supabaseService.updateComicFavorite(id, favorite);
   }
 
   async addComic(data: {
