@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ComicListComponent } from './comic-list/comic-list.component';
-import { AuthComponent } from './auth/auth.component';
-import { AuthService } from '../services/auth.service';
-import { HeaderComponent } from './header/header.component';
+import { Component } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { ComicListComponent } from "./comic-list/comic-list.component";
+import { AuthComponent } from "./auth/auth.component";
+import { AuthService } from "../services/auth.service";
+import { HeaderComponent } from "./header/header.component";
 
 @Component({
-  selector: 'app-root',
+  selector: "app-root",
   standalone: true,
   imports: [CommonModule, ComicListComponent, AuthComponent, HeaderComponent],
   template: `
@@ -19,7 +19,7 @@ import { HeaderComponent } from './header/header.component';
     <ng-template #auth>
       <app-auth></app-auth>
     </ng-template>
-  `
+  `,
 })
 export class AppComponent {
   constructor(public authService: AuthService) {}

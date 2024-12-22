@@ -1,20 +1,18 @@
 export enum ComicState {
-  veryOld = 'versleten',
-  old = 'oud',
-  ok = 'ok',
-  good = 'good',
-  perfect = 'perfect',
-  notOwned = 'niet in bezit'
+  veryOld = "versleten",
+  old = "oud",
+  ok = "ok",
+  good = "goed",
+  new = "nieuw",
 }
-
 
 export interface ComicBook {
   id: string;
   number: number;
   title: string;
-  cover_url: string;
   storage_url?: string;
-  state: ComicState;
+  state: ComicState | null;
+  owned: boolean;
   created_at: string;
   updated_at: string;
 }

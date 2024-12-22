@@ -1,14 +1,15 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ComicState } from '../../../models/comic-book.model';
+import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { ComicState } from "../../../models/comic-book.model";
 
 @Component({
-  selector: 'app-comic-filters',
+  selector: "app-comic-filters",
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
     <div class="flex flex-wrap gap-4 mb-8">
+      <!-- Search input -->
       <div class="flex-1 min-w-[200px]">
         <input
           type="text"
@@ -18,26 +19,39 @@ import { ComicState } from '../../../models/comic-book.model';
           placeholder="zoek op titel of nummer..."
         />
       </div>
-      
-      <select 
+
+      <!-- State filter -->
+      <select
         [(ngModel)]="selectedState"
         (ngModelChange)="onStateChange($event)"
         class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="">alle statussen</option>
         <option *ngFor="let state of states" [value]="state">
-          {{state}}
+          {{ state }}
         </option>
       </select>
 
+      <!-- Owned filter -->
+      <select
+        [(ngModel)]="selectedOwned"
+        (ngModelChange)="onOwnedChange($event)"
+        class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="">alle comics</option>
+        <option value="true">in collectie</option>
+        <option value="false">niet in collectie</option>
+      </select>
+
+      <!-- Action buttons -->
       <div class="flex gap-2">
-        <button 
+        <button
           class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
           (click)="addClick.emit()"
         >
           Nieuw
         </button>
-        <button 
+        <button
           class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
           (click)="uploadClick.emit()"
         >
@@ -45,13 +59,15 @@ import { ComicState } from '../../../models/comic-book.model';
         </button>
       </div>
     </div>
-  `
+  `,
 })
 export class ComicFiltersComponent {
-  @Input() searchValue = '';
-  @Input() selectedState = '';
+  @Input() searchValue = "";
+  @Input() selectedState = "";
+  @Input() selectedOwned = "";
   @Output() searchChange = new EventEmitter<string>();
   @Output() stateChange = new EventEmitter<string>();
+  @Output() ownedChange = new EventEmitter<string>();
   @Output() addClick = new EventEmitter<void>();
   @Output() uploadClick = new EventEmitter<void>();
 
@@ -63,5 +79,9 @@ export class ComicFiltersComponent {
 
   onStateChange(value: string) {
     this.stateChange.emit(value);
+  }
+
+  onOwnedChange(value: string) {
+    this.ownedChange.emit(value);
   }
 }

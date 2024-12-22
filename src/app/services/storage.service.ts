@@ -1,13 +1,13 @@
-import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { environment } from '../../environments/environment';
+import { Injectable } from "@angular/core";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { environment } from "../../environments/environment";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class StorageService {
   private supabase: SupabaseClient;
-  private readonly BUCKET_NAME = 'comic-covers';
+  private readonly BUCKET_NAME = "comic-covers";
 
   constructor() {
     this.supabase = createClient(
@@ -17,7 +17,7 @@ export class StorageService {
   }
 
   async uploadCover(file: File, comicNumber: number): Promise<string> {
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split(".").pop();
     const fileName = `comic-${comicNumber}.${fileExt}`;
     const filePath = `${fileName}`;
 
@@ -25,14 +25,14 @@ export class StorageService {
       .from(this.BUCKET_NAME)
       .upload(filePath, file, {
         upsert: true,
-        contentType: file.type
+        contentType: file.type,
       });
 
     if (error) throw error;
 
-    const { data: { publicUrl } } = this.supabase.storage
-      .from(this.BUCKET_NAME)
-      .getPublicUrl(filePath);
+    const {
+      data: { publicUrl },
+    } = this.supabase.storage.from(this.BUCKET_NAME).getPublicUrl(filePath);
 
     return publicUrl;
   }
@@ -44,7 +44,7 @@ export class StorageService {
 
     if (error) throw error;
 
-    const fileToDelete = data.find(file => 
+    const fileToDelete = data.find((file) =>
       file.name.startsWith(`comic-${comicNumber}.`)
     );
 

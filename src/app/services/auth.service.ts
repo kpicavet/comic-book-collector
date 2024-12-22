@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-import { BehaviorSubject } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Injectable } from "@angular/core";
+import { createClient, SupabaseClient, User } from "@supabase/supabase-js";
+import { BehaviorSubject } from "rxjs";
+import { environment } from "../../environments/environment";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class AuthService {
   private supabase: SupabaseClient;
@@ -17,8 +17,8 @@ export class AuthService {
       {
         auth: {
           persistSession: true,
-          autoRefreshToken: true
-        }
+          autoRefreshToken: true,
+        },
       }
     );
 
@@ -44,7 +44,7 @@ export class AuthService {
   async signUp(email: string, password: string) {
     const { error } = await this.supabase.auth.signUp({
       email,
-      password
+      password,
     });
     if (error) throw error;
   }
@@ -52,7 +52,7 @@ export class AuthService {
   async signIn(email: string, password: string) {
     const { error } = await this.supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
     if (error) throw error;
   }

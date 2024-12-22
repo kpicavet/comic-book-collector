@@ -1,5 +1,5 @@
-import { from, Observable, of, throwError } from 'rxjs';
-import { retry, catchError, delay } from 'rxjs/operators';
+import { from, Observable, of, throwError } from "rxjs";
+import { retry, catchError, delay } from "rxjs/operators";
 
 export interface RetryConfig {
   maxRetries?: number;
@@ -14,7 +14,7 @@ export function withRetry<T>(
   const {
     maxRetries = 3,
     delayMs = 1000,
-    shouldRetry = (error) => error?.isAcquireTimeout === true
+    shouldRetry = (error) => error?.isAcquireTimeout === true,
   } = config;
 
   return from(operation()).pipe(
@@ -26,10 +26,10 @@ export function withRetry<T>(
           return of(error).pipe(delay(delayMs));
         }
         return throwError(() => error);
-      }
+      },
     }),
     catchError((error) => {
-      console.error('Operation failed after retries:', error);
+      console.error("Operation failed after retries:", error);
       return throwError(() => error);
     })
   );

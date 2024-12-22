@@ -1,12 +1,12 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { SupabaseService } from '../../../services/supabase.service';
-import { ModalComponent } from '../../shared/modal/modal.component';
-import { UploadModalService } from '../../../services/upload-modal.service';
+import { Component, EventEmitter, OnInit, Output } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { SupabaseService } from "../../../services/supabase.service";
+import { ModalComponent } from "../../shared/modal/modal.component";
+import { UploadModalService } from "../../../services/upload-modal.service";
 
 @Component({
-  selector: 'app-image-upload',
+  selector: "app-image-upload",
   standalone: true,
   imports: [CommonModule, FormsModule, ModalComponent],
   template: `
@@ -16,8 +16,11 @@ import { UploadModalService } from '../../../services/upload-modal.service';
           <label class="block text-sm font-medium text-gray-700 mb-1">
             Comic Number *
           </label>
-          <div *ngIf="comicNumber" class="px-3 py-2 bg-gray-100 rounded-md text-gray-700">
-            {{comicNumber}}
+          <div
+            *ngIf="comicNumber"
+            class="px-3 py-2 bg-gray-100 rounded-md text-gray-700"
+          >
+            {{ comicNumber }}
           </div>
           <input
             *ngIf="!comicNumber"
@@ -28,7 +31,7 @@ import { UploadModalService } from '../../../services/upload-modal.service';
             required
           />
         </div>
-        
+
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">
             Cover Image *
@@ -43,7 +46,14 @@ import { UploadModalService } from '../../../services/upload-modal.service';
         </div>
 
         <!-- Feedback Messages -->
-        <div *ngIf="feedback" class="mt-2" [ngClass]="{'text-green-600': !feedback.error, 'text-red-600': feedback.error}">
+        <div
+          *ngIf="feedback"
+          class="mt-2"
+          [ngClass]="{
+            'text-green-600': !feedback.error,
+            'text-red-600': feedback.error
+          }"
+        >
           {{ feedback.message }}
         </div>
 
@@ -59,7 +69,11 @@ import { UploadModalService } from '../../../services/upload-modal.service';
           <button
             (click)="uploadImage()"
             class="px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            [disabled]="!selectedFile || (!comicNumber && !inputComicNumber) || isUploading"
+            [disabled]="
+              !selectedFile ||
+              (!comicNumber && !inputComicNumber) ||
+              isUploading
+            "
           >
             <span *ngIf="!isUploading">Upload</span>
             <span *ngIf="isUploading">Uploading...</span>
@@ -67,11 +81,11 @@ import { UploadModalService } from '../../../services/upload-modal.service';
         </div>
       </div>
     </app-modal>
-  `
+  `,
 })
 export class ImageUploadComponent implements OnInit {
   @Output() close = new EventEmitter<void>();
-  
+
   selectedFile?: File;
   comicNumber?: number;
   inputComicNumber?: number;
@@ -98,7 +112,8 @@ export class ImageUploadComponent implements OnInit {
   }
 
   async uploadImage() {
-    if (!this.selectedFile || (!this.comicNumber && !this.inputComicNumber)) return;
+    if (!this.selectedFile || (!this.comicNumber && !this.inputComicNumber))
+      return;
 
     this.isUploading = true;
     this.feedback = undefined;
@@ -109,15 +124,15 @@ export class ImageUploadComponent implements OnInit {
         this.selectedFile
       );
       this.feedback = {
-        message: 'Cover image uploaded successfully!',
-        error: false
+        message: "Cover image uploaded successfully!",
+        error: false,
       };
       // Auto-close after successful upload
       setTimeout(() => this.close.emit(), 1500);
     } catch (error) {
       this.feedback = {
-        message: 'Failed to upload cover. Please try again.',
-        error: true
+        message: "Failed to upload cover. Please try again.",
+        error: true,
       };
     } finally {
       this.isUploading = false;

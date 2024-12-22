@@ -1,14 +1,14 @@
-import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { AuthService } from './auth.service';
-import { StorageService } from './storage.service';
-import { ComicBook, ComicState } from '../models/comic-book.model';
-import { withRetry } from './database.utils';
+import { Injectable } from "@angular/core";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { BehaviorSubject, Observable } from "rxjs";
+import { environment } from "../../environments/environment";
+import { AuthService } from "./auth.service";
+import { StorageService } from "./storage.service";
+import { ComicBook, ComicState } from "../models/comic-book.model";
+import { withRetry } from "./database.utils";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class SupabaseService {
   private supabase: SupabaseClient;
@@ -29,43 +29,80 @@ export class SupabaseService {
     return this.comicBooks.asObservable();
   }
 
+  private updateLocalComic(id: string, updates: Partial<ComicBook>) {
+    const currentComics = this.comicBooks.value;
+    const updatedComics = currentComics.map((comic) =>
+      comic.id === id ? { ...comic, ...updates } : comic
+    );
+    this.comicBooks.next(updatedComics);
+  }
+
   async loadComicBooks() {
     if (!this.authService.currentUser) return;
 
     const { data, error } = await this.supabase
-      .from('comic_books')
-      .select('*')
-      .order('number');
+      .from("comic_books")
+      .select("*")
+      .order("number");
 
     if (error) {
-      console.error('Error loading comic books:', error);
+      console.error("Error loading comic books:", error);
       return;
     }
 
     this.comicBooks.next(data);
   }
 
-  async updateComicState(id: string, state: ComicState) {
+  async updateComicState(id: string, state: ComicState | null) {
     if (!this.authService.currentUser) return;
 
+    // Optimistic update
+    this.updateLocalComic(id, { state, updated_at: new Date().toISOString() });
+
     const { error } = await this.supabase
-      .from('comic_books')
-      .update({ 
-        state, 
-        updated_at: new Date().toISOString() 
+      .from("comic_books")
+      .update({
+        state,
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', id);
+      .eq("id", id);
 
     if (error) {
-      console.error('Error updating comic state:', error);
+      console.error("Error updating comic state:", error);
+      await this.loadComicBooks(); // Revert on error
       return;
     }
+  }
 
-    await this.loadComicBooks();
+  async updateComicOwned(id: string, owned: boolean) {
+    if (!this.authService.currentUser) return;
+
+    // Optimistic update
+    const state = owned ? ComicState.new : null;
+    this.updateLocalComic(id, {
+      owned,
+      state,
+      updated_at: new Date().toISOString(),
+    });
+
+    const { error } = await this.supabase
+      .from("comic_books")
+      .update({
+        owned,
+        state,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error updating comic owned status:", error);
+      await this.loadComicBooks(); // Revert on error
+      return;
+    }
   }
 
   async addComicBook(
-    comic: Omit<ComicBook, 'id' | 'created_at' | 'updated_at'>,
+    comic: Omit<ComicBook, "id" | "created_at" | "updated_at">,
     coverImage?: File
   ) {
     if (!this.authService.currentUser) return;
@@ -74,24 +111,29 @@ export class SupabaseService {
 
     try {
       if (coverImage) {
-        storageUrl = await this.storageService.uploadCover(coverImage, comic.number);
+        storageUrl = await this.storageService.uploadCover(
+          coverImage,
+          comic.number
+        );
       }
 
-      const { error } = await this.supabase
-        .from('comic_books')
-        .insert([{
+      const { error } = await this.supabase.from("comic_books").insert([
+        {
           ...comic,
-          storage_url: storageUrl
-        }]);
+          storage_url: storageUrl,
+        },
+      ]);
 
       if (error) throw error;
 
       await this.loadComicBooks();
     } catch (error) {
-      console.error('Error adding comic book:', error);
+      console.error("Error adding comic book:", error);
       // If we uploaded an image but failed to create the record, clean up
       if (storageUrl) {
-        await this.storageService.deleteCover(comic.number).catch(console.error);
+        await this.storageService
+          .deleteCover(comic.number)
+          .catch(console.error);
       }
       throw error;
     }
@@ -102,22 +144,25 @@ export class SupabaseService {
 
     try {
       // Upload to storage bucket and get URL
-      const storageUrl = await this.storageService.uploadCover(file, comicNumber);
+      const storageUrl = await this.storageService.uploadCover(
+        file,
+        comicNumber
+      );
 
       // Update database with new URL
       const { error } = await this.supabase
-        .from('comic_books')
-        .update({ 
+        .from("comic_books")
+        .update({
           storage_url: storageUrl,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('number', comicNumber);
+        .eq("number", comicNumber);
 
       if (error) throw error;
 
       await this.loadComicBooks();
     } catch (error) {
-      console.error('Error updating comic cover:', error);
+      console.error("Error updating comic cover:", error);
       throw error;
     }
   }
