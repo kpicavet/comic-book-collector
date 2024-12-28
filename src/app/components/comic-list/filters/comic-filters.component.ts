@@ -8,9 +8,9 @@ import { ComicState } from "../../../models/comic-book.model";
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="flex flex-wrap items-end gap-3 mb-6">
+    <div class="flex flex-col sm:flex-row flex-wrap items-end gap-3 mb-6">
       <!-- Search input -->
-      <div class="flex-1 min-w-[200px]">
+      <div class="w-full sm:flex-1 min-w-[200px]">
         <input
           id="search"
           type="text"
@@ -22,7 +22,7 @@ import { ComicState } from "../../../models/comic-book.model";
       </div>
 
       <!-- State filter -->
-      <div class="w-40">
+      <div class="w-full sm:w-40">
         <label for="state" class="block text-sm font-medium text-gray-600 mb-1"
           >Status</label
         >
@@ -40,7 +40,7 @@ import { ComicState } from "../../../models/comic-book.model";
       </div>
 
       <!-- Owned filter -->
-      <div class="w-40">
+      <div class="w-full sm:w-40">
         <label for="owned" class="block text-sm font-medium text-gray-600 mb-1"
           >Collectie</label
         >
@@ -57,7 +57,7 @@ import { ComicState } from "../../../models/comic-book.model";
       </div>
 
       <!-- Favorite filter -->
-      <div class="w-40">
+      <div class="w-full sm:w-40">
         <label
           for="favorite"
           class="block text-sm font-medium text-gray-600 mb-1"
@@ -76,15 +76,15 @@ import { ComicState } from "../../../models/comic-book.model";
       </div>
 
       <!-- Action buttons -->
-      <div class="flex gap-2 self-stretch pt-5">
+      <div class="flex w-full sm:w-auto gap-2 self-stretch">
         <button
-          class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+          class="flex-1 sm:flex-none bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
           (click)="addClick.emit()"
         >
           Nieuw
         </button>
         <button
-          class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+          class="flex-1 sm:flex-none bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
           (click)="uploadClick.emit()"
         >
           Upload

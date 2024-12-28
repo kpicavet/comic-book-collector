@@ -7,6 +7,10 @@ import { ComicFormComponent } from "./form/comic-form.component";
 import { FilterSectionComponent } from "./filters/filter-section.component";
 import { ImageUploadComponent } from "./image-upload/image-upload.component";
 import { UploadModalService } from "../../services/upload-modal.service";
+import { ViewToggleComponent, ViewMode } from "./views/view-toggle.component";
+import { CompactListComponent } from "./views/compact-list.component";
+import { ViewPreferenceService } from "../../services/view-preference.service";
+import { FilterToggleComponent } from "./filters/filter-toggle.component";
 
 @Component({
   selector: "app-comic-list",
@@ -17,22 +21,41 @@ import { UploadModalService } from "../../services/upload-modal.service";
     ComicFormComponent,
     FilterSectionComponent,
     ImageUploadComponent,
+    ViewToggleComponent,
+    CompactListComponent,
+    FilterToggleComponent,
   ],
   template: `
     <div class="container mx-auto px-4">
-      <app-filter-section
-        [searchValue]="searchTerm"
-        [selectedState]="selectedState"
-        [selectedOwned]="selectedOwned"
-        [selectedFavorite]="selectedFavorite"
-        (searchChange)="searchTerm = $event"
-        (stateChange)="selectedState = $event"
-        (ownedChange)="selectedOwned = $event"
-        (favoriteChange)="selectedFavorite = $event"
-        (addClick)="showAddForm = true"
-        (uploadClick)="uploadModalService.openModal()"
-      ></app-filter-section>
+      <!-- View controls -->
+      <div class="flex justify-end items-center gap-2 mb-4">
+        <app-filter-toggle
+          [isOpen]="showFilters"
+          (toggle)="showFilters = !showFilters"
+        ></app-filter-toggle>
+        <app-view-toggle
+          [currentView]="currentView"
+          (viewChange)="onViewChange($event)"
+        ></app-view-toggle>
+      </div>
 
+      <!-- Filters -->
+      <div *ngIf="showFilters" class="mb-4">
+        <app-filter-section
+          [searchValue]="searchTerm"
+          [selectedState]="selectedState"
+          [selectedOwned]="selectedOwned"
+          [selectedFavorite]="selectedFavorite"
+          (searchChange)="searchTerm = $event"
+          (stateChange)="selectedState = $event"
+          (ownedChange)="selectedOwned = $event"
+          (favoriteChange)="selectedFavorite = $event"
+          (addClick)="showAddForm = true"
+          (uploadClick)="uploadModalService.openModal()"
+        ></app-filter-section>
+      </div>
+
+      <!-- Forms and modals -->
       <app-comic-form
         *ngIf="showAddForm"
         (save)="addComic($event)"
@@ -44,12 +67,26 @@ import { UploadModalService } from "../../services/upload-modal.service";
         (close)="uploadModalService.closeModal()"
       ></app-image-upload>
 
-      <app-comic-grid
-        [comics]="filteredComics"
-        (stateChange)="updateState($event)"
-        (ownedChange)="updateOwned($event)"
-        (favoriteChange)="updateFavorite($event)"
-      ></app-comic-grid>
+      <!-- Comic list/grid views -->
+      <div>
+        <ng-container [ngSwitch]="currentView">
+          <app-comic-grid
+            *ngSwitchCase="'grid'"
+            [comics]="filteredComics"
+            (stateChange)="updateState($event)"
+            (ownedChange)="updateOwned($event)"
+            (favoriteChange)="updateFavorite($event)"
+          ></app-comic-grid>
+
+          <app-compact-list
+            *ngSwitchCase="'list'"
+            [comics]="filteredComics"
+            (stateChange)="updateState($event)"
+            (ownedChange)="updateOwned($event)"
+            (favoriteChange)="updateFavorite($event)"
+          ></app-compact-list>
+        </ng-container>
+      </div>
     </div>
   `,
 })
@@ -60,16 +97,26 @@ export class ComicListComponent implements OnInit {
   selectedOwned = "";
   selectedFavorite = "";
   showAddForm = false;
+  showFilters = false;
+  currentView: ViewMode;
 
   constructor(
     private supabaseService: SupabaseService,
-    public uploadModalService: UploadModalService
-  ) {}
+    public uploadModalService: UploadModalService,
+    private viewPreferenceService: ViewPreferenceService
+  ) {
+    this.currentView = this.viewPreferenceService.getPreferredView();
+  }
 
   ngOnInit() {
     this.supabaseService.getComicBooks().subscribe((comics) => {
       this.comics = comics;
     });
+  }
+
+  onViewChange(view: ViewMode) {
+    this.currentView = view;
+    this.viewPreferenceService.setPreferredView(view);
   }
 
   get filteredComics() {

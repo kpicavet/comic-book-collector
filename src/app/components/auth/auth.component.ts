@@ -28,12 +28,12 @@ import { AuthService } from "../../services/auth.service";
           />
           <button type="submit">{{ isLogin ? "Login" : "Registreer" }}</button>
         </form>
-        <!-- <p>
+        <p>
           {{ isLogin ? "nieuw account nodig?" : "Al een account?" }}
           <button class="link" (click)="toggleMode()">
             {{ isLogin ? "Registreer" : "Login" }}
           </button>
-        </p> -->
+        </p>
       </div>
     </div>
   `,
@@ -95,7 +95,7 @@ export class AuthComponent {
       if (this.isLogin) {
         await this.authService.signIn(this.email, this.password);
       } else {
-        // await this.authService.signUp(this.email, this.password);
+        await this.authService.signUp(this.email, this.password);
       }
     } catch (error) {
       console.error("Auth error:", error);

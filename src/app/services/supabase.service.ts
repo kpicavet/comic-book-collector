@@ -72,7 +72,6 @@ export class SupabaseService {
         {
           ...comic,
           storage_url: storageUrl,
-          favorite: false, // Set default value
         },
       ]);
 
@@ -106,7 +105,6 @@ export class SupabaseService {
     if (error) {
       console.error("Error updating comic state:", error);
       await this.loadComicBooks();
-      return;
     }
   }
 
@@ -114,7 +112,7 @@ export class SupabaseService {
     if (!this.authService.currentUser) return;
 
     const state = owned ? ComicState.new : null;
-    const favorite = owned ? false : undefined; // Reset favorite only when marking as owned
+    const favorite = owned ? false : undefined;
 
     this.updateLocalComic(id, {
       owned,
@@ -136,7 +134,6 @@ export class SupabaseService {
     if (error) {
       console.error("Error updating comic owned status:", error);
       await this.loadComicBooks();
-      return;
     }
   }
 
@@ -159,7 +156,6 @@ export class SupabaseService {
     if (error) {
       console.error("Error updating comic favorite status:", error);
       await this.loadComicBooks();
-      return;
     }
   }
 
